@@ -1,21 +1,9 @@
+import { searchSolides, dedupeJobs, jobKey } from "./jobCore.js";
+
 const storage = typeof browser !== "undefined" && browser.storage ? browser.storage.local : chrome.storage.local;
 
-const SOLIDES_BASE = "https://apigw.solides.com.br/jobs/v3/portal-vacancies-new";
-const JINA_SEARCH = "https://r.jina.ai/http://www.google.com/search";
 const BG_AGENT_ALARM = "bg-agent-check";
 const DEFAULT_INTERVAL_MINUTES = 30;
-
-const TECH_KEYWORDS = [
-  "desenvolvedor", "programador", "software", "frontend", "backend", "fullstack",
-  "full stack", "react", "node", "javascript", "typescript", "java", "python",
-  "sql", "dados", "qa", "devops", "sistemas", "web", "api", "engenharia",
-  "tecnologia", "ti", "suporte", "infra", "estágio", "estagio", "júnior", "junior",
-  "trainee", "aprendiz",
-];
-
-function normalizeText(text) {
-  return String(text || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
 
 async function getAgentPreferences() {
   const stored = await getStored("agent_settings", null);
@@ -100,160 +88,6 @@ async function registerApplication(job) {
 
   await storage.set({ appliedJobKeys: [...appliedJobKeys, key] });
   return true;
-}
-
-function stripHtml(html) {
-  return String(html || "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function formatSolidesLocation(vacancy) {
-  if (vacancy.jobType === "remoto" || vacancy.homeOffice) {
-    return "Remoto";
-  }
-  const city = vacancy.city && vacancy.city.name ? vacancy.city.name : "";
-  const state = vacancy.state && vacancy.state.code ? vacancy.state.code : "";
-  return [city, state].filter(Boolean).join(" - ") || "Brasil";
-}
-
-function mapSolidesVacancy(vacancy) {
-  const salary = vacancy.salary && vacancy.salary.finalRange
-    ? `\nSalário: R$ ${vacancy.salary.finalRange.toLocaleString("pt-BR")}`
-    : "";
-  const seniority = Array.isArray(vacancy.seniority) ? vacancy.seniority.map((item) => item.name).join(", ") : "";
-  const modality = vacancy.jobType === "presencial" ? "Presencial" : vacancy.jobType === "hibrido" ? "Híbrido" : vacancy.jobType === "remoto" ? "Remoto" : "";
-  const tags = [modality, seniority].filter(Boolean).join(" · ");
-
-  return {
-    id: String(vacancy.id),
-    title: (vacancy.title || "").trim(),
-    company: vacancy.companyName || "",
-    location: formatSolidesLocation(vacancy),
-    source: "Sólides",
-    url: vacancy.redirectLink || "",
-    description: [stripHtml(vacancy.description), tags, salary].filter(Boolean).join("\n"),
-    postedAt: vacancy.createdAt || "",
-    level: Array.isArray(vacancy.seniority) ? vacancy.seniority.map((s) => s.name).join(", ") : "",
-  };
-}
-
-function isRemote(vacancy) {
-  return vacancy.jobType === "remoto" || vacancy.homeOffice;
-}
-
-function matchesLocationRules(vacancy, prefs) {
-  const rules = prefs.location_rules || {};
-  if (!rules.outside_home_state_only_remote) {
-    return true;
-  }
-  const stateCode = vacancy.state && vacancy.state.code ? vacancy.state.code.toUpperCase() : "";
-  const inHomeState = stateCode === (rules.home_state || "").toUpperCase();
-  return inHomeState || isRemote(vacancy);
-}
-
-function stemMatches(text, role) {
-  const strippedRole = normalizeText(role).replace(/[()]/g, "");
-  if (strippedRole.length === 0) {
-    return false;
-  }
-  if (text.includes(strippedRole)) {
-    return true;
-  }
-  const stem = strippedRole.slice(0, Math.min(6, strippedRole.length));
-  return String(text).split(/[^a-z0-9]+/).some((word) => word.startsWith(stem));
-}
-
-function isPreferred(job, prefs) {
-  const preferredRoles = prefs.preferred_job_roles || [];
-  if (preferredRoles.length === 0) {
-    return true;
-  }
-  const text = normalizeText(`${job.title} ${job.location} ${job.description}`);
-  return preferredRoles.some((role) => stemMatches(text, role));
-}
-
-function isTechJob(job) {
-  const text = normalizeText(`${job.title} ${job.description} ${job.level || ""}`);
-  return TECH_KEYWORDS.some((keyword) => text.includes(keyword));
-}
-
-async function searchSolides(prefs, query) {
-  try {
-    const params = new URLSearchParams({ title: query, take: "10", page: "1" });
-    const response = await fetch(`${SOLIDES_BASE}?${params.toString()}`, {
-      headers: { Accept: "application/json" },
-    });
-    if (!response.ok) {
-      return [];
-    }
-    const payload = await response.json();
-    const vacancies = (payload && payload.data && payload.data.data) || [];
-    const mapped = vacancies
-      .filter((vacancy) => matchesLocationRules(vacancy, prefs))
-      .map(mapSolidesVacancy)
-      .filter((job) => isTechJob(job) && isPreferred(job, prefs));
-    return prefs.strict_filtering ? mapped : mapped;
-  } catch {
-    return [];
-  }
-}
-
-async function searchGoogle(prefs, query) {
-  const searchQuery = encodeURIComponent(query);
-  try {
-    const response = await fetch(`${JINA_SEARCH}?q=${searchQuery}`, {
-      headers: { Accept: "text/plain" },
-    });
-    if (!response.ok) {
-      return [];
-    }
-    const text = await response.text();
-    const lines = text
-      .split(/\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .slice(0, 10);
-
-    const mapped = lines
-      .filter((line) => /https?:\/\//i.test(line))
-      .map((line, index) => ({
-        id: `google-${index}`,
-        title: `Vaga ${index + 1}`,
-        company: "Google Search",
-        location: "Brasil",
-        source: "Google Search",
-        url: line,
-        description: `Resultado encontrado para: ${query}`,
-        level: "",
-        postedAt: "",
-      }))
-      .filter((job) => isPreferred(job, prefs) && isTechJob(job));
-
-    return mapped;
-  } catch {
-    return [];
-  }
-}
-
-function jobKey(job) {
-  return [job.title, job.company, job.location, job.url].join("|").toLowerCase();
-}
-
-function dedupeJobs(jobs) {
-  const seen = new Set();
-  const result = [];
-  for (const job of jobs) {
-    const key = jobKey(job);
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
-    result.push(job);
-  }
-  return result;
 }
 
 async function getBgAgentConfig() {
@@ -344,11 +178,8 @@ async function runBackgroundAgent() {
 
   let found = [];
   for (const query of queries) {
-    const [solides, google] = await Promise.all([
-      searchSolides(prefs, query),
-      searchGoogle(prefs, query),
-    ]);
-    found = found.concat(solides, google);
+    const solides = await searchSolides(prefs, query);
+    found = found.concat(solides);
   }
   found = dedupeJobs(found);
 

@@ -6,8 +6,9 @@ Esta extensão adiciona um painel rápido para acompanhar oportunidades de está
 - Busca por palavra-chave e cidade
 - Salvamento de vagas favoritas
 - Notificações básicas
-- **Agente em 2º plano**: o service worker procura novas vagas automaticamente (Sólides + Google) em intervalos configuráveis (30 min a 4 h) usando `chrome.alarms`, filtra pelas suas preferências e regras de localização, evita notificar vagas repetidas e abre a vaga ao clicar na notificação.
-- **Candidatura automática**: com a opção **"Candidatar automaticamente"** marcada, o agente abre as novas vagas do Sólides e preenche+envia o formulário sozinho usando seus dados salvos. Requer o navegador aberto com a extensão ativa, perfil salvo e currículo anexado. Só aplica em vagas com link de candidatura direto (Sólides); vagas do Google são apenas notificadas. O deduplicador (`appliedJobKeys`) evita reenviar a mesma vaga.
+- **Agente em 2º plano**: o service worker procura novas vagas automaticamente na API pública do Sólides em intervalos configuráveis (30 min a 4 h) usando `chrome.alarms`, filtra pelas suas preferências e regras de localização, evita notificar vagas repetidas e abre a vaga ao clicar na notificação.
+- **Candidatura automática**: com a opção **"Candidatar automaticamente"** marcada, o agente abre as novas vagas do Sólides e preenche+envia o formulário sozinho usando seus dados salvos. Requer o navegador aberto com a extensão ativa, perfil salvo e currículo anexado. O deduplicador (`appliedJobKeys`) evita reenviar a mesma vaga.
+- **Vagas reais no popup**: a lista do popup agora busca vagas reais na API do Sólides (sem vagas demo). O botão **"Ativar agente IA"** usa essas vagas reais.
 - **Autofill inteligente**: ao aplicar em uma vaga, o agente detecta os campos do formulário (Gupy, Sólides, LinkedIn, Indeed, GeekHunter, Programathor, etc.) e preenche com os dados do seu currículo — nome, e-mail, telefone, cidade/UF, LinkedIn, GitHub, portfólio, formação, experiência, habilidades, idiomas, resumo e pretensão salarial.
 - Anexo automático do currículo quando o formulário pede upload de arquivo
 - Consentimentos LGPD marcados automaticamente quando presentes

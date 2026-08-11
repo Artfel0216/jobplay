@@ -1,54 +1,11 @@
-const jobs = [
-  {
-    id: "ext-frontend",
-    title: "Desenvolvedor Frontend Júnior",
-    company: "Nexxus Labs",
-    location: "Remoto",
-    level: "Júnior",
-    source: "LinkedIn",
-    url: "https://www.linkedin.com/jobs/",
-    description: "Projeto web com React, TypeScript e APIs REST.",
-    tags: ["React", "TypeScript", "Frontend"],
-  },
-  {
-    id: "ext-estagio",
-    title: "Estágio em Desenvolvimento de Software",
-    company: "BlueStone Tech",
-    location: "São Paulo",
-    level: "Estágio",
-    source: "Indeed",
-    url: "https://br.indeed.com/jobs",
-    description: "Apoio em desenvolvimento web, testes e suporte interno.",
-    tags: ["JavaScript", "HTML", "CSS"],
-  },
-  {
-    id: "ext-backend",
-    title: "Software Developer Júnior",
-    company: "Cobalt Systems",
-    location: "Belo Horizonte",
-    level: "Júnior",
-    source: "Glassdoor",
-    url: "https://www.glassdoor.com/Job/jobs.htm",
-    description: "Desenvolvimento de APIs com Node.js e SQL.",
-    tags: ["Node.js", "SQL", "Backend"],
-  },
-  {
-    id: "ext-java",
-    title: "Programador Júnior Java",
-    company: "Delta Core",
-    location: "Campinas",
-    level: "Júnior",
-    source: "Indeed",
-    url: "https://br.indeed.com/jobs",
-    description: "Manutenção e implementação de serviços com Java e Spring.",
-    tags: ["Java", "Spring", "Backend"],
-  },
-];
+import { searchSolides, dedupeJobs } from "./jobCore.js";
 
 const storage = typeof browser !== "undefined" && browser.storage ? browser.storage.local : chrome.storage.local;
 
+let jobs = [];
 let preferredRoles = [];
 let strictFiltering = false;
+let locationRules = { home_state: "PE", outside_home_state_only_remote: true };
 
 const EMPTY_PROFILE = {
   name: "", email: "", phone: "", city: "", state: "", linkedin: "", github: "",
@@ -71,6 +28,12 @@ async function loadPreferredRoles() {
       preferredRoles = data.preferred_job_roles.map((p) => p.toLowerCase());
     }
     strictFiltering = !!data?.strict_filtering;
+    if (data?.location_rules) {
+      locationRules = {
+        home_state: (data.location_rules.home_state || "PE").toUpperCase(),
+        outside_home_state_only_remote: !!data.location_rules.outside_home_state_only_remote,
+      };
+    }
   } catch {
     // ignore
   }
@@ -108,9 +71,32 @@ function field(id) {
   return document.getElementById(id);
 }
 
+function buildPrefs() {
+  const checkbox = field('strictFilterCheckbox');
+  const userStrict = checkbox ? checkbox.checked : false;
+  return {
+    preferred_job_roles: preferredRoles,
+    strict_filtering: userStrict || strictFiltering,
+    location_rules: locationRules,
+  };
+}
+
+async function loadRealJobs(keyword) {
+  const query = (keyword || "").trim() || "estágio desenvolvimento";
+  setSummary("Buscando vagas no Sólides...");
+  const results = await searchSolides(buildPrefs(), query, { take: 10 });
+  jobs = dedupeJobs(results);
+  populateCities();
+  renderJobs();
+}
+
 function populateCities() {
   const cities = [...new Set(jobs.map((job) => job.location))].sort();
   field("citySelect").innerHTML = '<option value="all">Todas as cidades</option>' + cities.map((city) => `<option value="${city}">${city}</option>`).join("");
+}
+
+function jobText(job) {
+  return `${job.title} ${job.description || ""} ${job.level || ""}`.toLowerCase();
 }
 
 function getFilteredJobs() {
@@ -118,7 +104,7 @@ function getFilteredJobs() {
   const city = field("citySelect").value;
 
   const filtered = jobs.filter((job) => {
-    const text = `${job.title} ${job.description} ${job.tags.join(" ")} ${job.level || ""}`.toLowerCase();
+    const text = jobText(job);
     const matchesKeyword = !keyword || text.includes(keyword);
     const matchesCity = city === "all" || job.location === city;
     return matchesKeyword && matchesCity;
@@ -131,8 +117,7 @@ function getFilteredJobs() {
   const effectiveStrict = userStrict || strictFiltering;
 
   const preferred = filtered.filter((job) => {
-    const text = `${job.title} ${job.description} ${job.tags.join(" ")} ${job.level || ""}`.toLowerCase();
-    return preferredRoles.some((pr) => text.includes(pr));
+    return preferredRoles.some((pr) => jobText(job).includes(pr));
   });
 
   if (effectiveStrict) {
@@ -202,12 +187,11 @@ function loadBgFoundJobs() {
 
 function renderJobs() {
   const visibleJobs = getFilteredJobs();
-  setSummary(`${visibleJobs.length} vagas encontradas`);
+  setSummary(`${visibleJobs.length} vaga(s) encontrada(s)`);
 
   field("jobsList").innerHTML = visibleJobs.map((job) => {
     const isFavorite = favorites.includes(job.id);
-    const text = `${job.title} ${job.description} ${job.tags.join(" ")} ${job.level || ""}`.toLowerCase();
-    const isPreferred = preferredRoles.length > 0 && preferredRoles.some((pr) => text.includes(pr));
+    const isPreferred = preferredRoles.length > 0 && preferredRoles.some((pr) => jobText(job).includes(pr));
     return `
       <article class="job-card ${isPreferred ? "preferred" : ""}">
         ${isPreferred ? '<div style="position:absolute;right:12px;top:12px;color:#10b981;font-weight:600">PRIORIDADE</div>' : ''}
@@ -215,7 +199,8 @@ function renderJobs() {
         <p>${job.company} • ${job.location}</p>
         <p>${job.description}</p>
         <div class="job-tags">
-          ${job.tags.map((tag) => `<span class="job-tag">${tag}</span>`).join("")}
+          ${job.level ? `<span class="job-tag">${job.level}</span>` : ""}
+          ${job.source ? `<span class="job-tag">${job.source}</span>` : ""}
         </div>
         <div class="actions">
           <button data-action="favorite" data-id="${job.id}">${isFavorite ? "★ Favorita" : "☆ Salvar"}</button>
@@ -309,7 +294,7 @@ function loadFavorites() {
     if (typeof result.autoSubmit === "boolean") {
       field("autoSubmitCheckbox").checked = result.autoSubmit;
     }
-    loadPreferredRoles().then(() => loadSettingsFromStorage()).then(renderJobs);
+    loadPreferredRoles().then(() => loadSettingsFromStorage()).then(() => loadRealJobs(""));
     loadBgAgent();
     loadBgFoundJobs();
   });
@@ -333,10 +318,10 @@ field("saveSettingsButton").addEventListener('click', () => {
 field("resetSettingsButton").addEventListener('click', () => {
   storage.remove(['agent_settings'], () => {
     setSummary('Configurações restauradas para padrão.');
-    loadPreferredRoles().then(() => loadSettingsFromStorage()).then(renderJobs);
+    loadPreferredRoles().then(() => loadSettingsFromStorage()).then(() => loadRealJobs(""));
   });
 });
-field("searchButton").addEventListener("click", renderJobs);
+field("searchButton").addEventListener("click", () => loadRealJobs(field("keywordInput").value));
 
 field("saveProfileButton").addEventListener("click", () => {
   profile = readProfileForm();
@@ -426,7 +411,7 @@ field("agentButton").addEventListener("click", () => {
 
 field("keywordInput").addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
-    renderJobs();
+    loadRealJobs(field("keywordInput").value);
   }
 });
 
@@ -456,7 +441,6 @@ field("bgFoundList").addEventListener("click", (event) => {
   }
 });
 
+field("strictFilterCheckbox").addEventListener("change", renderJobs);
 field("citySelect").addEventListener("change", renderJobs);
-populateCities();
 loadFavorites();
-renderJobs();
