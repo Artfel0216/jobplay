@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Junior Tech Jobs",
+  "version": "1.0.0",
+  "description": "Extensão para acompanhar vagas de estágio e nível júnior em TI.",
+  "permissions": ["storage", "notifications", "tabs"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Junior Tech Jobs",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["autofill.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "junior-tech-jobs@example.com"
+    }
+  }
+}

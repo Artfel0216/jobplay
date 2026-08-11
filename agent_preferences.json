@@ -1,0 +1,17 @@
+{
+  "preferred_job_roles": [
+    "júnior",
+    "estágio",
+    "estagiário",
+    "trainee",
+    "aprendiz"
+  ],
+  "boost": 15,
+  "preferred_threshold": 50,
+  "strict_filtering": true,
+  "location_rules": {
+    "home_state": "PE",
+    "outside_home_state_only_remote": true
+  },
+  "note": "Foco exclusivo em vagas de TI para iniciantes. `strict_filtering` em true faz o agente processar apenas vagas júnior/estágio/trainee/aprendiz; `boost` aumenta a pontuação dessas vagas; `preferred_threshold` define o limiar mínimo de compatibilidade. `location_rules` define que vagas no estado de origem (PE) podem ser presenciais, híbridas ou remotas, mas vagas fora do estado só são aceitas se forem home office."
+}

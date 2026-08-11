@@ -1,0 +1,147 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, Arial, sans-serif;
+  background: #09090b;
+  color: #f4f4f5;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #09090b 0%, #18181b 100%);
+  min-width: 360px;
+  min-height: 500px;
+}
+
+.app {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 18px;
+}
+
+header p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #a1a1aa;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+input,
+select,
+button {
+  border-radius: 8px;
+  border: 1px solid #3f3f46;
+  padding: 8px 10px;
+  font: inherit;
+}
+
+button {
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+
+.summary {
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.job-card {
+  border: 1px solid #27272a;
+  border-radius: 10px;
+  padding: 10px;
+  background: #18181b;
+}
+
+.job-card h2 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.job-card p {
+  margin: 0;
+  color: #a1a1aa;
+  font-size: 12px;
+}
+
+.job-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.job-tag {
+  background: #27272a;
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.actions button {
+  background: #111827;
+  border-color: #374151;
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+.job-card.preferred {
+  border-color: #059669;
+  box-shadow: 0 4px 10px rgba(5,150,105,0.12);
+}
+
+label[for="strictFilterCheckbox"] {
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+.profile-details summary {
+  cursor: pointer;
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.profile button.secondary {
+  background: #111827;
+  border-color: #374151;
+  flex: 1;
+}
+
+.cv-file-name {
+  font-size: 12px;
+  color: #10b981;
+}
+
+input[type="file"] {
+  color: #a1a1aa;
+  font-size: 12px;
+}

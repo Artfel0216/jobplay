@@ -1,0 +1,13 @@
+{
+  "preferred_job_roles": [
+    "júnior",
+    "estágio",
+    "estagiário",
+    "trainee",
+    "aprendiz"
+  ],
+  "boost": 15,
+  "preferred_threshold": 50,
+  "strict_filtering": true,
+  "note": "Foco exclusivo em vagas de TI para iniciantes. `strict_filtering` em true faz o agente processar apenas vagas júnior/estágio/trainee/aprendiz; `boost` aumenta a pontuação dessas vagas; `preferred_threshold` define o limiar mínimo de compatibilidade."
+}

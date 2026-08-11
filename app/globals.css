@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 @theme inline {
@@ -12,15 +12,318 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ---------------------------------------------------------------------------
+   Scrollbar
+--------------------------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #2563eb, #0ea5e9);
+  border-radius: 999px;
+  border: 2px solid #09090b;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #3b82f6, #38bdf8);
+}
+::selection {
+  background: rgba(56, 189, 248, 0.35);
+  color: #f8fafc;
+}
+
+/* ---------------------------------------------------------------------------
+   Fundo: aurora animada + grid
+--------------------------------------------------------------------------- */
+@keyframes aurora-drift {
+  0% { transform: translate3d(-10%, -6%, 0) scale(1); }
+  50% { transform: translate3d(10%, 8%, 0) scale(1.15); }
+  100% { transform: translate3d(-10%, -6%, 0) scale(1); }
+}
+
+@keyframes aurora-hue {
+  0%, 100% { filter: hue-rotate(0deg) blur(80px); }
+  50% { filter: hue-rotate(45deg) blur(90px); }
+}
+
+.aurora-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.aurora {
+  position: absolute;
+  border-radius: 9999px;
+  opacity: 0.55;
+  animation: aurora-drift 22s ease-in-out infinite, aurora-hue 18s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+.aurora-1 {
+  width: 55vmax;
+  height: 55vmax;
+  top: -18vmax;
+  left: -12vmax;
+  background: radial-gradient(circle at 30% 30%, rgba(37, 99, 235, 0.9), rgba(14, 165, 233, 0.45) 45%, transparent 70%);
+}
+
+.aurora-2 {
+  width: 48vmax;
+  height: 48vmax;
+  bottom: -16vmax;
+  right: -10vmax;
+  background: radial-gradient(circle at 60% 60%, rgba(16, 185, 129, 0.8), rgba(5, 150, 105, 0.4) 45%, transparent 70%);
+  animation-delay: -8s;
+}
+
+.aurora-3 {
+  width: 40vmax;
+  height: 40vmax;
+  top: 30%;
+  left: 55%;
+  background: radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.7), rgba(99, 102, 241, 0.35) 50%, transparent 72%);
+  animation-delay: -14s;
+  opacity: 0.4;
+}
+
+@keyframes grid-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  animation: grid-fade 1.6s ease-out both;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black 30%, transparent 80%);
+}
+
+/* ---------------------------------------------------------------------------
+   Texto e componentes utilitários
+--------------------------------------------------------------------------- */
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, #38bdf8, #818cf8, #34d399, #38bdf8);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-x 8s ease infinite;
+}
+
+.glass {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+@keyframes border-shine {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.card-hover {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 45px -18px rgba(56, 189, 248, 0.45);
+}
+
+@keyframes shine {
+  0% { transform: translateX(-120%) skewX(-15deg); }
+  60%, 100% { transform: translateX(220%) skewX(-15deg); }
+}
+
+.shine-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.shine-wrap::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+  transform: translateX(-120%) skewX(-15deg);
+  pointer-events: none;
+}
+.shine-wrap:hover::after {
+  animation: shine 0.9s ease;
+}
+
+.btn-primary {
+  position: relative;
+  background: linear-gradient(135deg, #0ea5e9, #2563eb 55%, #7c3aed);
+  background-size: 200% 200%;
+  animation: gradient-x 6s ease infinite;
+  transition: transform 0.25s ease, box-shadow 0.3s ease, filter 0.3s ease;
+  box-shadow: 0 8px 24px -8px rgba(14, 165, 233, 0.6);
+}
+.btn-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.12);
+  box-shadow: 0 14px 34px -8px rgba(14, 165, 233, 0.75);
+}
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-ghost {
+  transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.3s ease, border-color 0.25s ease;
+}
+.btn-ghost:hover {
+  transform: translateY(-2px);
+}
+
+.pill {
+  transition: transform 0.25s ease, box-shadow 0.3s ease, background-color 0.25s ease, border-color 0.25s ease;
+}
+.pill:hover {
+  transform: translateY(-1px) scale(1.04);
+}
+
+.input-glass {
+  background: rgba(9, 9, 11, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  color: #e4e4e7;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+}
+.input-glass::placeholder {
+  color: #52525b;
+}
+.input-glass:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.input-glass:focus {
+  outline: none;
+  border-color: rgba(56, 189, 248, 0.65);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+  background: rgba(9, 9, 11, 0.9);
+}
+
+select.input-glass option {
+  background: #18181b;
+}
+
+/* ---------------------------------------------------------------------------
+   Reveal on scroll
+--------------------------------------------------------------------------- */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.92) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.pop-in {
+  animation: pop-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ---------------------------------------------------------------------------
+   Indicadores / badges
+--------------------------------------------------------------------------- */
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6); }
+  70% { box-shadow: 0 0 0 9px rgba(52, 211, 153, 0); }
+}
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+.spin-slow {
+  animation: spin-slow 14s linear infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+.blink {
+  animation: blink 1.4s ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------------------------
+   Skeletons
+--------------------------------------------------------------------------- */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.04) 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+/* ---------------------------------------------------------------------------
+   Acessibilidade / movimento reduzido
+--------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

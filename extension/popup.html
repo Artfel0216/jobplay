@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Junior Tech Jobs</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <h1>Junior Tech Jobs</h1>
+        <p>Estágios e vagas júnior em TI</p>
+      </header>
+
+      <section class="controls">
+        <input id="keywordInput" type="text" placeholder="React, Java, estágio..." />
+        <select id="citySelect"></select>
+        <label style="display:flex;align-items:center;gap:8px;">
+          <input id="strictFilterCheckbox" type="checkbox" />
+          <span>Filtro estrito (apenas vagas preferidas)</span>
+        </label>
+        <details style="margin-top:6px;padding:8px;border-radius:8px;border:1px solid #27272a;background:#0b1220;color:#cbd5e1;">
+          <summary style="cursor:pointer">Configurações do agente</summary>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+            <label>Boost (pontuação extra para vagas preferidas): <input id="boostInput" type="number" min="0" max="100" style="width:100px;margin-left:8px"/></label>
+            <label>Limiar preferido (quando vaga é preferida): <input id="thresholdInput" type="number" min="0" max="100" style="width:100px;margin-left:8px"/></label>
+            <div style="display:flex;gap:8px;align-items:center"><button id="saveSettingsButton">Salvar configurações</button><button id="resetSettingsButton">Restaurar padrões</button></div>
+          </div>
+        </details>
+        <button id="searchButton">Buscar</button>
+        <button id="agentButton">Ativar agente IA</button>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#cbd5e1;">
+          <input id="autoSubmitCheckbox" type="checkbox" />
+          <span>Enviar formulário automaticamente ao preencher</span>
+        </label>
+      </section>
+
+      <details class="profile-details">
+        <summary>Meu perfil (dados de candidatura)</summary>
+        <section class="profile">
+          <input id="nameInput" type="text" placeholder="Nome completo" />
+          <input id="emailInput" type="email" placeholder="seu@email.com" />
+          <input id="phoneInput" type="tel" placeholder="Telefone / WhatsApp" />
+          <input id="cityInput" type="text" placeholder="Cidade" />
+          <input id="stateInput" type="text" placeholder="UF (ex.: PE)" maxlength="2" />
+          <input id="linkedinInput" type="url" placeholder="linkedin.com/in/..." />
+          <input id="githubInput" type="url" placeholder="github.com/..." />
+          <input id="portfolioInput" type="url" placeholder="Portfólio / site" />
+          <input id="salaryInput" type="text" placeholder="Pretensão salarial (ex.: R$ 3.500)" />
+          <input id="skillsInput" type="text" placeholder="Tecnologias (React, Node.js, SQL)" />
+          <input id="languagesInput" type="text" placeholder="Idiomas (Inglês avançado)" />
+          <input id="educationInput" type="text" placeholder="Formação (Análise e Desenvolvimento)" />
+          <textarea id="summaryInput" placeholder="Resumo profissional"></textarea>
+          <label class="file-label" style="font-size:12px;color:#cbd5e1;">
+            Anexar currículo (.txt, .md ou .pdf):
+            <input id="cvFileInput" type="file" accept=".txt,.md,.pdf" style="margin-top:4px" />
+          </label>
+          <span id="cvFileName" class="cv-file-name"></span>
+          <div style="display:flex;gap:8px;">
+            <button id="saveProfileButton">Salvar perfil</button>
+            <button id="fillCurrentTabButton" class="secondary">Preencher formulário nesta aba</button>
+          </div>
+        </section>
+      </details>
+
+      <section id="summary" class="summary"></section>
+      <section id="jobsList" class="jobs-list"></section>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
