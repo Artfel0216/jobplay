@@ -6,10 +6,19 @@ Esta extensão adiciona um painel rápido para acompanhar oportunidades de está
 - Busca por palavra-chave e cidade
 - Salvamento de vagas favoritas
 - Notificações básicas
+- **Agente em 2º plano**: o service worker procura novas vagas automaticamente (Sólides + Google) em intervalos configuráveis (30 min a 4 h) usando `chrome.alarms`, filtra pelas suas preferências e regras de localização, evita notificar vagas repetidas e abre a vaga ao clicar na notificação.
+- **Candidatura automática**: com a opção **"Candidatar automaticamente"** marcada, o agente abre as novas vagas do Sólides e preenche+envia o formulário sozinho usando seus dados salvos. Requer o navegador aberto com a extensão ativa, perfil salvo e currículo anexado. Só aplica em vagas com link de candidatura direto (Sólides); vagas do Google são apenas notificadas. O deduplicador (`appliedJobKeys`) evita reenviar a mesma vaga.
 - **Autofill inteligente**: ao aplicar em uma vaga, o agente detecta os campos do formulário (Gupy, Sólides, LinkedIn, Indeed, GeekHunter, Programathor, etc.) e preenche com os dados do seu currículo — nome, e-mail, telefone, cidade/UF, LinkedIn, GitHub, portfólio, formação, experiência, habilidades, idiomas, resumo e pretensão salarial.
 - Anexo automático do currículo quando o formulário pede upload de arquivo
 - Consentimentos LGPD marcados automaticamente quando presentes
 - Opção de enviar o formulário automaticamente após o preenchimento
+
+## Como usar o agente em 2º plano
+1. Abra o popup e, na seção **"Agente em 2º plano"**, marque **"Procurar novas vagas automaticamente"**.
+2. Escolha o intervalo (30 min, 1 h, 2 h ou 4 h).
+3. Clique em **"Verificar agora"** para uma checagem imediata.
+4. Quando novas vagas forem encontradas, você recebe uma notificação; clique nela para abrir a vaga. As vagas encontradas aparecem no topo do popup em **"Vagas encontradas em 2º plano"**.
+5. As preferências (cargos preferidos, filtro estrito e regras de localização) valem tanto para o agente em 2º plano quanto para o autofill.
 
 ## Como usar o autofill
 1. Abra o popup da extensão e expanda **"Meu perfil (dados de candidatura)"**.
@@ -40,3 +49,4 @@ Esta extensão adiciona um painel rápido para acompanhar oportunidades de está
 - O preenchimento acontece **apenas no seu navegador**; nenhum dado é enviado para servidores.
 - Campos já preenchidos não são sobrescritos.
 - Campos sensíveis (CPF, data de nascimento, documento) nunca são preenchidos automaticamente — preencha manualmente quando o formulário pedir.
+- **Atenção**: candidatura automática em massa pode ser detectada pelos sites e levar ao bloqueio da sua conta (LinkedIn, Gupy, Indeed e outros proíbem automação). Use com moderação e revise as candidaturas. Formulários com CAPTCHA ou etapas extras (testes, vídeo) não são preenchidos.

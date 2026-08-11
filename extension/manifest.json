@@ -3,7 +3,8 @@
   "name": "Junior Tech Jobs",
   "version": "1.0.0",
   "description": "Extensão para acompanhar vagas de estágio e nível júnior em TI.",
-  "permissions": ["storage", "notifications", "tabs"],
+  "permissions": ["storage", "notifications", "tabs", "alarms"],
+  "host_permissions": ["https://apigw.solides.com.br/*", "https://r.jina.ai/*"],
   "background": {
     "service_worker": "background.js"
   },

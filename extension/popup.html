@@ -36,6 +36,31 @@
         </label>
       </section>
 
+      <section class="bg-agent">
+        <h2>Agente em 2º plano</h2>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;">
+          <input id="bgEnabledCheckbox" type="checkbox" />
+          <span>Procurar novas vagas automaticamente</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#f59e0b;">
+          <input id="bgAutoSubmitCheckbox" type="checkbox" />
+          <span>Candidatar automaticamente (enviar currículo sozinho)</span>
+        </label>
+        <div class="bg-row">
+          <label style="font-size:12px;color:#cbd5e1;">
+            A cada
+            <select id="bgIntervalSelect" style="margin:0 4px;">
+              <option value="30">30 min</option>
+              <option value="60">1 h</option>
+              <option value="120">2 h</option>
+              <option value="240">4 h</option>
+            </select>
+          </label>
+          <button id="bgRunNowButton" class="secondary">Verificar agora</button>
+        </div>
+        <p id="bgStatus" class="bg-status"></p>
+      </section>
+
       <details class="profile-details">
         <summary>Meu perfil (dados de candidatura)</summary>
         <section class="profile">
@@ -65,6 +90,7 @@
       </details>
 
       <section id="summary" class="summary"></section>
+      <section id="bgFoundList" class="jobs-list"></section>
       <section id="jobsList" class="jobs-list"></section>
     </main>
 

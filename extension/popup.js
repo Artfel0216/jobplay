@@ -143,6 +143,63 @@ function getFilteredJobs() {
   return [...preferred, ...others];
 }
 
+function renderBgStatus(config, status) {
+  const el = field("bgStatus");
+  if (!el) return;
+  if (!status || !status.lastRun) {
+    el.textContent = config.enabled
+      ? "Ativo - busca a cada " + config.intervalMinutes + " min. Aguardando a primeira verificacao..."
+      : "Inativo. Marque a opcao acima para procurar vagas automaticamente.";
+    return;
+  }
+  const time = new Date(status.lastRun).toLocaleString("pt-BR");
+  const lines = [
+    config.enabled ? "Ativo (a cada " + config.intervalMinutes + " min)" : "Inativo",
+    "Ultima verificacao: " + time,
+    "Encontradas: " + status.found + " - Novas: " + status.newJobs,
+  ];
+  if (status.error) lines.push("Erro: " + status.error);
+  el.textContent = lines.join("\n");
+}
+
+function loadBgAgent() {
+  chrome.runtime.sendMessage({ type: "getBgStatus" }, (response) => {
+    if (!response || !response.ok) {
+      const el = field("bgStatus");
+      if (el) el.textContent = "Agente em 2 plano indisponivel.";
+      return;
+    }
+    field("bgEnabledCheckbox").checked = response.config.enabled;
+    field("bgIntervalSelect").value = String(response.config.intervalMinutes);
+    renderBgStatus(response.config, response.status);
+  });
+  storage.get(["bgAutoSubmit"], (result) => {
+    field("bgAutoSubmitCheckbox").checked = result.bgAutoSubmit === true;
+  });
+}
+
+function loadBgFoundJobs() {
+  storage.get(["bgFoundJobs"], (result) => {
+    const section = field("bgFoundList");
+    if (!section) return;
+    const found = result.bgFoundJobs || [];
+    if (found.length === 0) {
+      section.innerHTML = "";
+      return;
+    }
+    section.innerHTML = '<h2 style="font-size:14px;margin:8px 0 4px;">Vagas encontradas em 2 plano</h2>' +
+      found.map((job) => `
+        <article class="job-card">
+          <h2>${job.title}</h2>
+          <p>${job.company} - ${job.location}</p>
+          <div class="actions">
+            <button data-action="open" data-url="${job.url}">Abrir vaga</button>
+          </div>
+        </article>
+      `).join("");
+  });
+}
+
 function renderJobs() {
   const visibleJobs = getFilteredJobs();
   setSummary(`${visibleJobs.length} vagas encontradas`);
@@ -253,6 +310,8 @@ function loadFavorites() {
       field("autoSubmitCheckbox").checked = result.autoSubmit;
     }
     loadPreferredRoles().then(() => loadSettingsFromStorage()).then(renderJobs);
+    loadBgAgent();
+    loadBgFoundJobs();
   });
 }
 
@@ -277,12 +336,51 @@ field("resetSettingsButton").addEventListener('click', () => {
     loadPreferredRoles().then(() => loadSettingsFromStorage()).then(renderJobs);
   });
 });
-
 field("searchButton").addEventListener("click", renderJobs);
+
 field("saveProfileButton").addEventListener("click", () => {
   profile = readProfileForm();
   storage.set({ profile });
   setSummary("Perfil salvo para o agente de candidatura.");
+});
+
+field("bgEnabledCheckbox").addEventListener("change", () => {
+  chrome.runtime.sendMessage({
+    type: "setBgAgent",
+    enabled: field("bgEnabledCheckbox").checked,
+    intervalMinutes: Number(field("bgIntervalSelect").value),
+  }, (response) => {
+    if (response && response.ok) loadBgAgent();
+  });
+});
+
+field("bgIntervalSelect").addEventListener("change", () => {
+  chrome.runtime.sendMessage({
+    type: "setBgAgent",
+    enabled: field("bgEnabledCheckbox").checked,
+    intervalMinutes: Number(field("bgIntervalSelect").value),
+  });
+});
+
+field("bgRunNowButton").addEventListener("click", () => {
+  const button = field("bgRunNowButton");
+  button.disabled = true;
+  setSummary("Verificando novas vagas...");
+  chrome.runtime.sendMessage({ type: "runBgNow" }, (response) => {
+    button.disabled = false;
+    loadBgAgent();
+    loadBgFoundJobs();
+    if (response && response.status && response.status.found !== undefined) {
+      setSummary(`Verificação concluída: ${response.status.found} vaga(s), ${response.status.newJobs} nova(s).`);
+    }
+  });
+});
+
+field("bgAutoSubmitCheckbox").addEventListener("change", () => {
+  storage.set({ bgAutoSubmit: field("bgAutoSubmitCheckbox").checked });
+  setSummary(field("bgAutoSubmitCheckbox").checked
+    ? "Auto-candidatura ativada: o agente enviará currículos sozinho nas vagas do Sólides."
+    : "Auto-candidatura desativada.");
 });
 
 field("fillCurrentTabButton").addEventListener("click", () => {
@@ -348,6 +446,13 @@ field("jobsList").addEventListener("click", (event) => {
 
   if (action === "open") {
     window.open(url, "_blank", "noopener,noreferrer");
+  }
+});
+
+field("bgFoundList").addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-action='open']");
+  if (button && button.dataset.url) {
+    window.open(button.dataset.url, "_blank", "noopener,noreferrer");
   }
 });
 
